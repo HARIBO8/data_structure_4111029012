@@ -106,11 +106,16 @@ class ParkingSystem:
     # -------------------------
     def reserve(
         self,
+        username: str,
         license_plate: str,
         start_time: int,
         end_time: int,
         spot_type: str = "normal",
     ) -> Optional[Reservation]:
+        username = (username or "").strip()
+        if not username:
+            return None
+
         license_plate = license_plate.strip()
         if not license_plate:
             return None
@@ -130,6 +135,7 @@ class ParkingSystem:
         reservation_id = self._new_reservation_id()
         r = Reservation(
             reservation_id=reservation_id,
+            username=username,              # ★追加
             license_plate=license_plate,
             spot_id=spot.spot_id,
             start_time=start_time,
@@ -282,18 +288,14 @@ class ParkingSystem:
             if spot is None:
                 return False, "区画が見つかりません"
 
-            # 予約直後のUndo前提（RESERVEDであることを期待）
             if spot.status != SpotStatus.RESERVED:
                 return False, "この予約はすでに進行しているためUndoできません"
 
-            # 入庫待ち登録があれば無効化
             if rid in self._queued_set:
                 self._queued_set.remove(rid)
 
-            # 予約そのものを消す
             del self.reservations[rid]
 
-            # 区画を空きに戻してHeapへ
             spot.status = SpotStatus.EMPTY
             self._select_heap(spot.spot_type).add_spot(spot)
 
@@ -311,7 +313,6 @@ class ParkingSystem:
 
             r.status = ReservationStatus.RESERVATION
             spot.status = SpotStatus.RESERVED
-            # Heapからの削除は不要（lazy popが捨てる）
             return True, f"Undo: キャンセルを取り消しました（{rid}）"
 
         # ---- 入庫受付の取り消し ----
@@ -333,16 +334,13 @@ class ParkingSystem:
             if spot.status != SpotStatus.OCCUPIED:
                 return False, "入庫済みではないためUndoできません"
 
-            # 状態を戻す
             spot.status = SpotStatus.RESERVED
             r.gate = None
             r.status = ReservationStatus.WAITING
 
-            # Queue先頭に戻す
             self.entry_queue.enqueue_front(rid)
             self._queued_set.add(rid)
 
-            # ゲートの回転を元に戻す（容量nのとき n-1 回転で戻る）
             n = self.gates.size()
             for _ in range(max(0, n - 1)):
                 g = self.gates.dequeue()
@@ -363,7 +361,6 @@ class ParkingSystem:
 
             r.status = ReservationStatus.ACTIVE
             spot.status = SpotStatus.OCCUPIED
-            # Heapからの削除は不要（lazy popが捨てる）
             return True, f"Undo: 出庫を取り消しました（{rid}）"
 
         return False, "未対応のUndo操作です"

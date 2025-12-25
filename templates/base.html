@@ -21,7 +21,11 @@
     <a href="{{ url_for('user_reserve') }}">予約</a>
   {% elif session.get("role") == "admin" %}
     <a href="{{ url_for('admin_dashboard') }}">管理者画面</a>
+  {% else %}
+    <a href="{{ url_for('login') }}">ログイン</a>
+    <a href="{{ url_for('register') }}">ユーザー登録</a>
   {% endif %}
+
   {% if session.get("user") %}
     <a href="{{ url_for('logout') }}">ログアウト</a>
   {% endif %}

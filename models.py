@@ -18,6 +18,7 @@ class ParkingSpot:
     spot_type: str      # "normal" / "EV"
     status: SpotStatus
 
+
 class ReservationStatus(Enum):
     RESERVATION = "RESERVATION"
     WAITING = "WAITING"
@@ -25,9 +26,11 @@ class ReservationStatus(Enum):
     CANCELED = "CANCELED"
     DONE = "DONE"
 
+
 @dataclass
 class Reservation:
     reservation_id: str
+    username: str              # ★追加：この予約の所有ユーザー
     license_plate: str
     spot_id: str
     start_time: int
