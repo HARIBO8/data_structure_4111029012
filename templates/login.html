@@ -1,25 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>ログイン</h1>
 
-<form method="post">
-  <div>
-    <label>ユーザー名</label><br>
-    <input name="username" required>
+<div class="grid">
+  <div class="col-12">
+    <div class="card" style="max-width:520px; margin:0 auto;">
+      <h1 class="page-title" style="margin:0 0 6px;">ログイン</h1>
+      <p class="page-sub" style="margin:0 0 14px;">
+        管理者 / ユーザーとしてログインしてください。
+      </p>
+
+      <form method="post">
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">ユーザー名</label>
+          <input name="username" required
+                 style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none;">
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">パスワード</label>
+          <input name="password" type="password" required
+                 style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none;">
+        </div>
+
+        <div class="btn-row" style="margin-top:0;">
+          <button class="btn-primary" style="min-width:140px;">ログイン</button>
+          <a class="btn" href="{{ url_for('register') }}">ユーザー登録</a>
+        </div>
+      </form>
+
+      <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:12px; color:var(--muted); font-size:13px;">
+        <div><span class="badge">管理者</span> admin / admin</div>
+        <div style="margin-top:6px;"><span class="badge">ユーザー</span> 登録済みのみログイン可</div>
+      </div>
+    </div>
   </div>
-  <div>
-    <label>パスワード</label><br>
-    <input name="password" type="password" required>
-  </div>
-  <button>ログイン</button>
-</form>
+</div>
 
-<p style="margin-top: 12px;">
-  <a href="{{ url_for('register') }}">ユーザー登録はこちら</a>
-</p>
-
-<p>
-  管理者： admin / admin<br>
-  ユーザー： 登録済みのみログイン可
-</p>
 {% endblock %}
