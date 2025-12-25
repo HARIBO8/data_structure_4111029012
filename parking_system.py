@@ -11,12 +11,12 @@ from stack_undo import Stack, UndoOp
 
 class ParkingSystem:
     """
-    駐車場予約システムの中枢
+    停車場預約系統的核心模組
 
-    - 空き区画: type別 Min-Heap
-    - 入庫待ち: Queue（FIFO）
-    - ゲート割当: Circular Queue（Round-robin）
-    - Undo: Stack（LIFO）
+    - 空車位管理：依類型使用 Min-Heap
+    - 入庫等待佇列：Queue（FIFO）
+    - 閘門分配：Circular Queue（Round-robin）
+    - 操作復原（Undo）：Stack（LIFO）
     """
 
     def __init__(self) -> None:
@@ -183,18 +183,18 @@ class ParkingSystem:
     def request_check_in(self, reservation_id: str) -> Tuple[bool, str]:
         r = self.reservations.get(reservation_id)
         if r is None:
-            return False, "予約が存在しません"
+            return False, "預約不存在"
         if r.status != ReservationStatus.RESERVATION:
-            return False, "RESERVATIONの予約ではありません"
+            return False, "此預約狀態並非 RESERVATION"
 
         spot = self.get_spot_by_id(r.spot_id)
         if spot is None:
-            return False, "区画が見つかりません"
+            return False, "找不到對應的停車格"
         if spot.status != SpotStatus.RESERVED:
-            return False, "区画がRESERVEDではありません"
+            return False, "停車格狀態不是 RESERVED"
 
         if reservation_id in self._queued_set:
-            return False, "すでに入庫待ちに入っています"
+            return False, "已在入庫等待佇列中"
 
         self.entry_queue.enqueue(reservation_id)
         self._queued_set.add(reservation_id)
@@ -202,28 +202,28 @@ class ParkingSystem:
         r.status = ReservationStatus.WAITING
 
         self.undo_stack.push(UndoOp(op_type="REQUEST_CHECKIN", reservation_id=reservation_id))
-        return True, "入庫待ちに追加しました（FIFO）"
+        return True, "已加入入庫等待佇列（FIFO）"
 
     def process_next_check_in(self) -> Tuple[bool, str]:
         rid = self.entry_queue.dequeue()
         if rid is None:
-            return False, "入庫待ちが空です"
+            return False, "目前沒有入庫等待中的車輛"
 
         if rid not in self._queued_set:
-            return False, "この入庫待ちはキャンセル済みです（スキップ）"
+            return False, "此入庫請求已被取消（已略過）"
         self._queued_set.remove(rid)
 
         r = self.reservations.get(rid)
         if r is None or r.status != ReservationStatus.WAITING:
-            return False, "予約が無効です（スキップ）"
+            return False, "預約狀態無效（已略過）"
 
         spot = self.get_spot_by_id(r.spot_id)
         if spot is None or spot.status != SpotStatus.RESERVED:
-            return False, "区画状態が不正です（スキップ）"
+            return False, "停車格狀態異常（已略過）"
 
         gate = self.gates.dequeue()
         if gate is None:
-            return False, "ゲートが利用できません"
+            return False, "目前沒有可用的入庫閘門"
 
         self.gates.enqueue(gate)
 
@@ -232,7 +232,7 @@ class ParkingSystem:
         r.status = ReservationStatus.ACTIVE
 
         self.undo_stack.push(UndoOp(op_type="PROCESS_CHECKIN", reservation_id=rid))
-        return True, f"入庫処理完了：{rid}（{gate}）"
+        return True, f"入庫完成：{rid}（{gate}）"
 
     # -------------------------
     # 出庫
@@ -266,20 +266,20 @@ class ParkingSystem:
     def undo_last(self) -> Tuple[bool, str]:
         op = self.undo_stack.pop()
         if op is None:
-            return False, "Undoできる操作がありません"
+            return False, "目前沒有可復原的操作"
 
         rid = op.reservation_id
         r = self.reservations.get(rid)
 
         if op.op_type == "RESERVE":
             if r is None:
-                return False, "予約が見つかりません"
+                return False, "找不到對應的預約"
             spot = self.get_spot_by_id(r.spot_id)
             if spot is None:
-                return False, "区画が見つかりません"
+                return False, "找不到停車格"
 
             if spot.status != SpotStatus.RESERVED:
-                return False, "この予約はすでに進行しているためUndoできません"
+                return False, "此預約已進行後續操作，無法復原"
 
             if rid in self._queued_set:
                 self._queued_set.remove(rid)
@@ -289,37 +289,37 @@ class ParkingSystem:
             spot.status = SpotStatus.EMPTY
             self._select_heap(spot.spot_type).add_spot(spot)
 
-            return True, f"Undo: 予約を取り消しました（{rid}）"
+            return True, f"Undo：已取消預約（{rid}）"
 
         if op.op_type == "CANCEL":
             if r is None or r.status != ReservationStatus.CANCELED:
-                return False, "キャンセル状態ではないためUndoできません"
+                return False, "此狀態無法復原"
             spot = self.get_spot_by_id(r.spot_id)
             if spot is None:
-                return False, "区画が見つかりません"
+                return False, "找不到停車格"
             if spot.status != SpotStatus.EMPTY:
-                return False, "区画が空きではないためUndoできません"
+                return False, "停車格非空位，無法復原"
 
             r.status = ReservationStatus.RESERVATION
             spot.status = SpotStatus.RESERVED
-            return True, f"Undo: キャンセルを取り消しました（{rid}）"
+            return True, f"Undo：已復原取消操作（{rid}）"
 
         if op.op_type == "REQUEST_CHECKIN":
             if rid in self._queued_set:
                 self._queued_set.remove(rid)
                 if r is not None and r.status == ReservationStatus.WAITING:
                     r.status = ReservationStatus.RESERVATION
-                return True, f"Undo: 入庫受付を取り消しました（{rid}）"
-            return False, "入庫待ちに存在しないためUndoできません"
+                return True, f"Undo：已取消入庫申請（{rid}）"
+            return False, "該入庫請求不存在，無法復原"
 
         if op.op_type == "PROCESS_CHECKIN":
             if r is None or r.status != ReservationStatus.ACTIVE:
-                return False, "予約が無効です"
+                return False, "預約狀態無效"
             spot = self.get_spot_by_id(r.spot_id)
             if spot is None:
-                return False, "区画が見つかりません"
+                return False, "找不到停車格"
             if spot.status != SpotStatus.OCCUPIED:
-                return False, "入庫済みではないためUndoできません"
+                return False, "尚未完成入庫，無法復原"
 
             spot.status = SpotStatus.RESERVED
             r.gate = None
@@ -334,22 +334,22 @@ class ParkingSystem:
                 if g is not None:
                     self.gates.enqueue(g)
 
-            return True, f"Undo: 入庫処理を取り消しました（{rid}）"
+            return True, f"Undo：已取消入庫處理（{rid}）"
 
         if op.op_type == "CHECKOUT":
             if r is None or r.status != ReservationStatus.DONE:
-                return False, "DONE状態ではないためUndoできません"
+                return False, "此狀態無法復原"
             spot = self.get_spot_by_id(r.spot_id)
             if spot is None:
-                return False, "区画が見つかりません"
+                return False, "找不到停車格"
             if spot.status != SpotStatus.EMPTY:
-                return False, "区画が空きではないためUndoできません"
+                return False, "停車格非空位，無法復原"
 
             r.status = ReservationStatus.ACTIVE
             spot.status = SpotStatus.OCCUPIED
-            return True, f"Undo: 出庫を取り消しました（{rid}）"
+            return True, f"Undo：已復原出庫操作（{rid}）"
 
-        return False, "未対応のUndo操作です"
+        return False, "尚未支援的 Undo 操作"
 
     # -------------------------
     # 内部
@@ -363,3 +363,36 @@ class ParkingSystem:
 
     def _new_reservation_id(self) -> str:
         return f"R-{uuid.uuid4().hex[:8]}"
+
+
+    def get_spot_overview(self):
+        """
+        管理者畫面用：
+        依樓層彙整各停車格目前狀態與車輛資訊
+        """
+        # spot_id -> reservation の対応表
+        res_by_spot = {
+            r.spot_id: r
+            for r in self.reservations.values()
+            if r.status in (
+                ReservationStatus.RESERVATION,
+                ReservationStatus.WAITING,
+                ReservationStatus.ACTIVE,
+            )
+        }
+
+        floors = {}
+        for spot in self.spots:
+            floor = spot.floor
+            floors.setdefault(floor, [])
+
+            r = res_by_spot.get(spot.spot_id)
+
+            floors[floor].append({
+                "spot_id": spot.spot_id,
+                "status": spot.status.value,
+                "username": r.username if r else None,
+                "license_plate": r.license_plate if r else None,
+            })
+
+        return floors

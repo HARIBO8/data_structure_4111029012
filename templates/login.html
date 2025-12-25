@@ -4,33 +4,33 @@
 <div class="grid">
   <div class="col-12">
     <div class="card" style="max-width:520px; margin:0 auto;">
-      <h1 class="page-title" style="margin:0 0 6px;">ログイン</h1>
+      <h1 class="page-title" style="margin:0 0 6px;">登入</h1>
       <p class="page-sub" style="margin:0 0 14px;">
-        管理者 / ユーザーとしてログインしてください。
+        請以管理者或使用者身分登入系統。
       </p>
 
       <form method="post">
         <div style="margin-bottom:12px;">
-          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">ユーザー名</label>
+          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">使用者名稱</label>
           <input name="username" required
                  style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none;">
         </div>
 
         <div style="margin-bottom:14px;">
-          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">パスワード</label>
+          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">密碼</label>
           <input name="password" type="password" required
                  style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none;">
         </div>
 
         <div class="btn-row" style="margin-top:0;">
-          <button class="btn-primary" style="min-width:140px;">ログイン</button>
-          <a class="btn" href="{{ url_for('register') }}">ユーザー登録</a>
+          <button class="btn-primary" style="min-width:140px;">登入</button>
+          <a class="btn" href="{{ url_for('register') }}">使用者註冊</a>
         </div>
       </form>
 
       <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:12px; color:var(--muted); font-size:13px;">
         <div><span class="badge">管理者</span> admin / admin</div>
-        <div style="margin-top:6px;"><span class="badge">ユーザー</span> 登録済みのみログイン可</div>
+        <div style="margin-top:6px;"><span class="badge">使用者</span> 僅限已註冊帳號登入</div>
       </div>
     </div>
   </div>

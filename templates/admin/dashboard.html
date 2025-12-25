@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="page-title">管理者画面</h1>
-<p class="page-sub">入庫待ちの処理、現在の入庫状況、履歴をまとめて確認できます。</p>
+<h1 class="page-title">管理者畫面</h1>
+<p class="page-sub">可統一管理入庫等待、目前入庫狀態與歷史紀錄。</p>
 
 <div class="grid">
 
-  <!-- Stats -->
+  <!-- 統計資訊 -->
   <div class="col-12 card">
     <div class="grid">
       <div class="col-4 stat">
         <div>
-          <div class="label">入庫待ち件数</div>
+          <div class="label">入庫等待數量</div>
           <div class="value">{{ queue_size }}</div>
         </div>
         <span class="badge badge-wait">WAITING</span>
@@ -27,7 +27,7 @@
 
       <div class="col-4 stat">
         <div>
-          <div class="label">履歴（DONE / CANCELED）</div>
+          <div class="label">歷史紀錄（DONE / CANCELED）</div>
           <div class="value">{{ history|length }}</div>
         </div>
         <span class="badge">HISTORY</span>
@@ -36,25 +36,25 @@
 
     <div class="btn-row">
       <form method="post" action="{{ url_for('admin_process_checkin') }}">
-        <button class="btn-primary">入庫許可（次の1台）</button>
+        <button class="btn-primary">允許入庫（下一輛）</button>
       </form>
 
       <form method="post" action="{{ url_for('admin_undo') }}">
-        <button class="btn-danger">Undo（直前を取り消す）</button>
+        <button class="btn-danger">復原（取消上一個操作）</button>
       </form>
     </div>
   </div>
 
-  <!-- WAITING -->
+  <!-- 入庫等待 -->
   <div class="col-6 card">
-    <h2 style="margin:0 0 8px;">WAITING（入庫待ち）</h2>
+    <h2 style="margin:0 0 8px;">WAITING（入庫等待中）</h2>
     {% if waiting %}
       <table>
         <tr>
-          <th>ID</th>
-          <th>ユーザー</th>
+          <th>預約ID</th>
+          <th>使用者</th>
           <th>車牌</th>
-          <th>区画</th>
+          <th>停車格</th>
         </tr>
         {% for r in waiting %}
           <tr>
@@ -66,21 +66,21 @@
         {% endfor %}
       </table>
     {% else %}
-      <div class="empty">入庫待ちはありません</div>
+      <div class="empty">目前沒有入庫等待中的車輛</div>
     {% endif %}
   </div>
 
-  <!-- ACTIVE -->
+  <!-- 入庫中 -->
   <div class="col-6 card">
-    <h2 style="margin:0 0 8px;">ACTIVE（入庫中）</h2>
+    <h2 style="margin:0 0 8px;">ACTIVE（已入庫）</h2>
     {% if active %}
       <table>
         <tr>
-          <th>ID</th>
-          <th>ユーザー</th>
+          <th>預約ID</th>
+          <th>使用者</th>
           <th>車牌</th>
-          <th>ゲート</th>
-          <th>区画</th>
+          <th>入口 Gate</th>
+          <th>停車格</th>
         </tr>
         {% for r in active %}
           <tr>
@@ -93,21 +93,21 @@
         {% endfor %}
       </table>
     {% else %}
-      <div class="empty">ACTIVEの予約はありません</div>
+      <div class="empty">目前沒有入庫中的車輛</div>
     {% endif %}
   </div>
 
-  <!-- HISTORY -->
+  <!-- 歷史紀錄 -->
   <div class="col-12 card">
-    <h2 style="margin:0 0 8px;">履歴</h2>
+    <h2 style="margin:0 0 8px;">歷史紀錄</h2>
     {% if history %}
       <table>
         <tr>
-          <th>ID</th>
-          <th>ユーザー</th>
-          <th>状態</th>
+          <th>預約ID</th>
+          <th>使用者</th>
+          <th>狀態</th>
           <th>車牌</th>
-          <th>区画</th>
+          <th>停車格</th>
         </tr>
         {% for r in history %}
           <tr>
@@ -115,9 +115,9 @@
             <td>{{ r.username|default('-', true) }}</td>
             <td>
               {% if r.status.value == "DONE" %}
-                <span class="badge badge-done">DONE</span>
+                <span class="badge badge-done">已出庫</span>
               {% elif r.status.value == "CANCELED" %}
-                <span class="badge badge-cancel">CANCELED</span>
+                <span class="badge badge-cancel">已取消</span>
               {% else %}
                 <span class="badge">{{ r.status.value }}</span>
               {% endif %}
@@ -128,10 +128,43 @@
         {% endfor %}
       </table>
     {% else %}
-      <div class="empty">履歴はありません</div>
+      <div class="empty">尚無歷史紀錄</div>
     {% endif %}
   </div>
 
+</div>
+
+<!-- 停車場整體狀態 -->
+<div class="col-12 card">
+  <h2>停車場整體狀況（依樓層顯示）</h2>
+
+  {% for floor, spots in spot_overview.items() %}
+    <h3>{{ floor }} 樓</h3>
+    <table>
+      <tr>
+        <th>停車格</th>
+        <th>狀態</th>
+        <th>使用者</th>
+        <th>車牌</th>
+      </tr>
+      {% for s in spots %}
+        <tr>
+          <td>{{ s.spot_id }}</td>
+          <td>
+            {% if s.status == "EMPTY" %}
+              <span class="badge">空位</span>
+            {% elif s.status == "RESERVED" %}
+              <span class="badge badge-wait">已預約</span>
+            {% else %}
+              <span class="badge badge-active">使用中</span>
+            {% endif %}
+          </td>
+          <td>{{ s.username or "-" }}</td>
+          <td>{{ s.license_plate or "-" }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% endfor %}
 </div>
 
 {% endblock %}

@@ -4,33 +4,33 @@
 <div class="grid">
   <div class="col-12">
     <div class="card" style="max-width:520px; margin:0 auto;">
-      <h1 class="page-title" style="margin:0 0 6px;">ユーザー登録</h1>
+      <h1 class="page-title" style="margin:0 0 6px;">使用者註冊</h1>
       <p class="page-sub" style="margin:0 0 14px;">
-        ユーザー名とパスワードを設定してください。
+        請設定使用者名稱與密碼。
       </p>
 
       <form method="post">
         <div style="margin-bottom:12px;">
-          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">ユーザー名</label>
+          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">使用者名稱</label>
           <input name="username" required
                  style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none;">
         </div>
 
         <div style="margin-bottom:12px;">
-          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">パスワード</label>
+          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">密碼</label>
           <input name="password" type="password" required
                  style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none;">
         </div>
 
         <div style="margin-bottom:14px;">
-          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">パスワード（確認）</label>
+          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">確認密碼</label>
           <input name="password2" type="password" required
                  style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none;">
         </div>
 
         <div class="btn-row" style="margin-top:0;">
-          <button class="btn-primary" style="min-width:140px;">登録</button>
-          <a class="btn" href="{{ url_for('login') }}">ログインへ戻る</a>
+          <button class="btn-primary" style="min-width:140px;">註冊</button>
+          <a class="btn" href="{{ url_for('login') }}">返回登入頁</a>
         </div>
       </form>
     </div>

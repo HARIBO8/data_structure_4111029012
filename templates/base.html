@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="ja">
+<html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <title>Parking System</title>
+  <title>停車場管理系統</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
@@ -36,7 +36,7 @@
       padding: 22px 18px 40px;
     }
 
-    /* Nav */
+    /* 導覽列 */
     nav{
       display:flex;
       align-items:center;
@@ -59,7 +59,7 @@
       background: #f3f4f6;
     }
 
-    /* Flash */
+    /* 提示訊息 */
     .msg {
       padding: 12px 14px;
       margin: 12px 0;
@@ -70,7 +70,7 @@
     .success { border-color: #86efac; background: var(--success-weak); }
     .error { border-color: #fecaca; background: var(--danger-weak); }
 
-    /* Common UI */
+    /* 共用 UI */
     .card{
       background: var(--card);
       border: 1px solid var(--border);
@@ -153,7 +153,7 @@
     }
     .btn-danger:hover{ filter: brightness(.95); }
 
-    /* Table */
+    /* 表格 */
     table{
       width: 100%;
       border-collapse: collapse;
@@ -203,20 +203,20 @@
 <body>
   <nav>
     {% if session.get("role") == "user" %}
-      <a href="{{ url_for('user_dashboard') }}">ユーザー画面</a>
-      <a href="{{ url_for('user_reserve') }}">予約</a>
+      <a href="{{ url_for('user_dashboard') }}">使用者畫面</a>
+      <a href="{{ url_for('user_reserve') }}">建立預約</a>
     {% elif session.get("role") == "admin" %}
-      <a href="{{ url_for('admin_dashboard') }}">管理者画面</a>
+      <a href="{{ url_for('admin_dashboard') }}">管理者畫面</a>
     {% else %}
-      <a href="{{ url_for('login') }}">ログイン</a>
-      <a href="{{ url_for('register') }}">ユーザー登録</a>
+      <a href="{{ url_for('login') }}">登入</a>
+      <a href="{{ url_for('register') }}">使用者註冊</a>
     {% endif %}
 
     <div class="spacer"></div>
 
     {% if session.get("user") %}
       <span class="badge">{{ session.get("user") }}</span>
-      <a href="{{ url_for('logout') }}">ログアウト</a>
+      <a href="{{ url_for('logout') }}">登出</a>
     {% endif %}
   </nav>
 

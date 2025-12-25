@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="page-title">ユーザー画面</h1>
-<p class="page-sub">自分の予約一覧です。状態に応じて「入庫」「出庫」ができます。</p>
+<h1 class="page-title">使用者畫面</h1>
+<p class="page-sub">以下為您的預約清單，可依狀態進行「入庫」或「出庫」操作。</p>
 
 <div class="grid">
   <div class="col-12 card">
     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
       <div style="display:flex; gap:8px; align-items:center;">
-        <span class="badge">RESERVATION</span>
-        <span class="badge badge-wait">WAITING</span>
-        <span class="badge badge-active">ACTIVE</span>
+        <span class="badge">RESERVATION（已預約）</span>
+        <span class="badge badge-wait">WAITING（等待入庫）</span>
+        <span class="badge badge-active">ACTIVE（已入庫）</span>
       </div>
-      <a class="btn btn-primary" href="{{ url_for('user_reserve') }}">＋ 予約を作成</a>
+      <a class="btn btn-primary" href="{{ url_for('user_reserve') }}">＋ 建立新預約</a>
     </div>
 
     {% if reservations %}
       <table>
         <tr>
-          <th style="width:160px;">ID</th>
+          <th style="width:160px;">預約 ID</th>
           <th>車牌</th>
-          <th style="width:140px;">区画</th>
-          <th style="width:140px;">状態</th>
+          <th style="width:140px;">停車格</th>
+          <th style="width:140px;">狀態</th>
           <th style="width:180px;">操作</th>
         </tr>
 
@@ -44,11 +44,11 @@
           <td>
             {% if r.status == ReservationStatus.RESERVATION %}
               <form method="post" action="{{ url_for('user_checkin', reservation_id=r.reservation_id) }}">
-                <button class="btn-primary">入庫（受付）</button>
+                <button class="btn-primary">申請入庫</button>
               </form>
 
             {% elif r.status == ReservationStatus.WAITING %}
-              <span style="color:var(--muted); font-size:14px;">入庫待ち中</span>
+              <span style="color:var(--muted); font-size:14px;">等待管理者放行中</span>
 
             {% elif r.status == ReservationStatus.ACTIVE %}
               <form method="post" action="{{ url_for('user_checkout', reservation_id=r.reservation_id) }}">
@@ -60,7 +60,7 @@
         {% endfor %}
       </table>
     {% else %}
-      <div class="empty">予約はまだありません。右上の「予約を作成」から作れます。</div>
+      <div class="empty">目前尚無預約，可點擊右上角「建立新預約」進行新增。</div>
     {% endif %}
   </div>
 </div>

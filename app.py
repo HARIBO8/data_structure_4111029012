@@ -16,8 +16,13 @@ system.initialize_spots()
 # ユーザーDB（簡易：メモリ）
 # ※ サーバー再起動で消える
 # -------------------------
-USERS: dict[str, str] = {}  # username -> password_hash
+from werkzeug.security import generate_password_hash
 
+USERS = {
+    "A": generate_password_hash("a"),
+    "B": generate_password_hash("b"),
+    "C": generate_password_hash("c"),
+}
 
 # -------------------------
 # 共通：ロールチェック
@@ -27,7 +32,7 @@ def require_role(role):
         @wraps(fn)
         def inner(*args, **kwargs):
             if session.get("role") != role:
-                flash("権限がありません", "error")
+                flash("您沒有操作權限", "error")
                 return redirect(url_for("login"))
             return fn(*args, **kwargs)
         return inner
@@ -75,27 +80,27 @@ def register():
         pw2 = request.form.get("password2") or ""
 
         if not username:
-            flash("ユーザー名を入力してください", "error")
+            flash("請輸入使用者名稱", "error")
             return render_template("register.html")
 
         if username == "admin":
-            flash("admin は登録できません", "error")
+            flash("admin 無法註冊為一般使用者", "error")
             return render_template("register.html")
 
         if username in USERS:
-            flash("そのユーザー名は既に使われています", "error")
+            flash("此使用者名稱已被使用", "error")
             return render_template("register.html")
 
         if not pw1:
-            flash("パスワードを入力してください", "error")
+            flash("請輸入密碼", "error")
             return render_template("register.html")
 
         if pw1 != pw2:
-            flash("パスワードが一致しません", "error")
+            flash("兩次輸入的密碼不一致", "error")
             return render_template("register.html")
 
         USERS[username] = generate_password_hash(pw1)
-        flash("登録成功。ログインしてください。", "success")
+        flash("註冊成功，請登入系統", "success")
         return redirect(url_for("login"))
 
     return render_template("register.html")
@@ -125,7 +130,7 @@ def login():
             session["role"] = "user"
             return redirect(url_for("user_dashboard"))
 
-        flash("ログイン失敗：ユーザー名またはパスワードが違います", "error")
+        flash("登入失敗：使用者名稱或密碼錯誤", "error")
 
     return render_template("login.html")
 
@@ -153,7 +158,6 @@ def user_dashboard():
             ReservationStatus.ACTIVE,
         )
     ]
-
     return render_template(
         "user/dashboard.html",
         reservations=reservations,
@@ -174,9 +178,9 @@ def user_reserve():
             spot_type=request.form["spot_type"],
         )
         if r:
-            flash("予約成功", "success")
+            flash("預約成功", "success")
             return redirect(url_for("user_dashboard"))
-        flash("予約失敗", "error")
+        flash("預約失敗", "error")
 
     return render_template("user/reserve.html")
 
@@ -185,7 +189,7 @@ def user_reserve():
 @require_role("user")
 def user_checkin(reservation_id):
     if not ensure_owner(reservation_id):
-        flash("他のユーザーの予約は操作できません", "error")
+        flash("無法操作其他使用者的預約", "error")
         return redirect(url_for("user_dashboard"))
 
     ok, msg = system.request_check_in(reservation_id)
@@ -197,12 +201,12 @@ def user_checkin(reservation_id):
 @require_role("user")
 def user_checkout(reservation_id):
     if not ensure_owner(reservation_id):
-        flash("他のユーザーの予約は操作できません", "error")
+        flash("無法操作其他使用者的預約", "error")
         return redirect(url_for("user_dashboard"))
 
     fee = system.check_out(reservation_id)
     if fee is not None:
-        flash(f"出庫完了 料金：{fee}", "success")
+        flash(f"出庫完成，費用：{fee}", "success")
     else:
         flash("出庫失敗", "error")
     return redirect(url_for("user_dashboard"))
@@ -218,12 +222,15 @@ def admin_dashboard():
     active = system.list_reservations(ReservationStatus.ACTIVE)
     history = system.list_history()
 
+    spot_overview = system.get_spot_overview()
+
     return render_template(
         "admin/dashboard.html",
         waiting=waiting,
         active=active,
         history=history,
         queue_size=system.get_entry_queue_size(),
+        spot_overview=spot_overview,
         ReservationStatus=ReservationStatus,
     )
 

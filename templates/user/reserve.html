@@ -4,9 +4,9 @@
 <div class="grid">
   <div class="col-12">
     <div class="card" style="max-width:620px; margin:0 auto;">
-      <h1 class="page-title" style="margin:0 0 6px;">予約作成</h1>
+      <h1 class="page-title" style="margin:0 0 6px;">建立預約</h1>
       <p class="page-sub" style="margin:0 0 14px;">
-        車牌、区画タイプ、利用時間を入力してください。
+        請輸入車牌、停車格類型及使用時間。
       </p>
 
       <form method="post">
@@ -17,30 +17,30 @@
         </div>
 
         <div style="margin-bottom:12px;">
-          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">区画タイプ</label>
+          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">停車格類型</label>
           <select name="spot_type"
                   style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none; background:#fff;">
-            <option value="normal">normal</option>
-            <option value="EV">EV</option>
+            <option value="normal">一般車位</option>
+            <option value="EV">電動車位（EV）</option>
           </select>
         </div>
 
         <div class="grid" style="gap:12px;">
           <div class="col-6">
-            <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">開始（時）</label>
+            <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">開始時間（時）</label>
             <input type="number" name="start_time" value="10"
                    style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none;">
           </div>
           <div class="col-6">
-            <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">終了（時）</label>
+            <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">結束時間（時）</label>
             <input type="number" name="end_time" value="12"
                    style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:12px; outline:none;">
           </div>
         </div>
 
         <div class="btn-row" style="margin-top:14px;">
-          <button class="btn-primary" style="min-width:140px;">予約</button>
-          <a class="btn" href="{{ url_for('user_dashboard') }}">戻る</a>
+          <button class="btn-primary" style="min-width:140px;">送出預約</button>
+          <a class="btn" href="{{ url_for('user_dashboard') }}">返回</a>
         </div>
       </form>
     </div>
