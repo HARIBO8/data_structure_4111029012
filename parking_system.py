@@ -76,7 +76,7 @@ class ParkingSystem:
     # -------------------------
     # 表示用
     # -------------------------
-    def list_reservations(self, status: ReservationStatus | None = None) -> list[Reservation]:
+    def list_reservations(self, status: Optional[ReservationStatus] = None) -> list[Reservation]:
         items = list(self.reservations.values())
         if status is None:
             return items
@@ -135,17 +135,16 @@ class ParkingSystem:
         reservation_id = self._new_reservation_id()
         r = Reservation(
             reservation_id=reservation_id,
-            username=username,              # ★追加
+            username=username,
             license_plate=license_plate,
             spot_id=spot.spot_id,
             start_time=start_time,
             end_time=end_time,
-            status=ReservationStatus.RESERVATION,  # 予約直後
+            status=ReservationStatus.RESERVATION,
             gate=None,
         )
         self.reservations[reservation_id] = r
 
-        # Undo記録（予約を取り消す）
         self.undo_stack.push(UndoOp(op_type="RESERVE", reservation_id=reservation_id))
         return r
 
@@ -154,7 +153,6 @@ class ParkingSystem:
         if r is None:
             return False
 
-        # RESERVATION / WAITING のみキャンセル可（ACTIVEは入庫済み）
         if r.status not in (ReservationStatus.RESERVATION, ReservationStatus.WAITING):
             return False
 
@@ -162,7 +160,6 @@ class ParkingSystem:
         if spot is None:
             return False
 
-        # WAITING なら入庫待ちから外す（実Queueはスキップ方式）
         if reservation_id in self._queued_set:
             self._queued_set.remove(reservation_id)
 
@@ -177,7 +174,6 @@ class ParkingSystem:
             return False
         heap.add_spot(spot)
 
-        # Undo記録（キャンセルを取り消す）
         self.undo_stack.push(UndoOp(op_type="CANCEL", reservation_id=reservation_id))
         return True
 
@@ -203,10 +199,8 @@ class ParkingSystem:
         self.entry_queue.enqueue(reservation_id)
         self._queued_set.add(reservation_id)
 
-        # 入庫待ちへ（Queueに入った状態）
         r.status = ReservationStatus.WAITING
 
-        # Undo記録（受付を取り消す）
         self.undo_stack.push(UndoOp(op_type="REQUEST_CHECKIN", reservation_id=reservation_id))
         return True, "入庫待ちに追加しました（FIFO）"
 
@@ -231,14 +225,12 @@ class ParkingSystem:
         if gate is None:
             return False, "ゲートが利用できません"
 
-        # Round-robin
         self.gates.enqueue(gate)
 
         spot.status = SpotStatus.OCCUPIED
         r.gate = gate
-        r.status = ReservationStatus.ACTIVE  # 入庫完了
+        r.status = ReservationStatus.ACTIVE
 
-        # Undo記録（入庫処理を取り消す）
         self.undo_stack.push(UndoOp(op_type="PROCESS_CHECKIN", reservation_id=rid))
         return True, f"入庫処理完了：{rid}（{gate}）"
 
@@ -265,12 +257,11 @@ class ParkingSystem:
             return None
         heap.add_spot(spot)
 
-        # Undo記録（出庫を取り消す）
         self.undo_stack.push(UndoOp(op_type="CHECKOUT", reservation_id=reservation_id))
         return fee
 
     # -------------------------
-    # Undo（直前1操作だけ取り消す）
+    # Undo
     # -------------------------
     def undo_last(self) -> Tuple[bool, str]:
         op = self.undo_stack.pop()
@@ -280,7 +271,6 @@ class ParkingSystem:
         rid = op.reservation_id
         r = self.reservations.get(rid)
 
-        # ---- 予約の取り消し ----
         if op.op_type == "RESERVE":
             if r is None:
                 return False, "予約が見つかりません"
@@ -301,7 +291,6 @@ class ParkingSystem:
 
             return True, f"Undo: 予約を取り消しました（{rid}）"
 
-        # ---- キャンセルの取り消し ----
         if op.op_type == "CANCEL":
             if r is None or r.status != ReservationStatus.CANCELED:
                 return False, "キャンセル状態ではないためUndoできません"
@@ -315,7 +304,6 @@ class ParkingSystem:
             spot.status = SpotStatus.RESERVED
             return True, f"Undo: キャンセルを取り消しました（{rid}）"
 
-        # ---- 入庫受付の取り消し ----
         if op.op_type == "REQUEST_CHECKIN":
             if rid in self._queued_set:
                 self._queued_set.remove(rid)
@@ -324,7 +312,6 @@ class ParkingSystem:
                 return True, f"Undo: 入庫受付を取り消しました（{rid}）"
             return False, "入庫待ちに存在しないためUndoできません"
 
-        # ---- 入庫処理（OCCUPIED化）の取り消し ----
         if op.op_type == "PROCESS_CHECKIN":
             if r is None or r.status != ReservationStatus.ACTIVE:
                 return False, "予約が無効です"
@@ -349,7 +336,6 @@ class ParkingSystem:
 
             return True, f"Undo: 入庫処理を取り消しました（{rid}）"
 
-        # ---- 出庫（DONE化）の取り消し ----
         if op.op_type == "CHECKOUT":
             if r is None or r.status != ReservationStatus.DONE:
                 return False, "DONE状態ではないためUndoできません"
