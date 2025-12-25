@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>予約作成</h1>
+
+<form method="post">
+  <input name="license_plate" placeholder="車牌" required><br>
+  <select name="spot_type">
+    <option value="normal">normal</option>
+    <option value="EV">EV</option>
+  </select><br>
+  <input type="number" name="start_time" value="10"><br>
+  <input type="number" name="end_time" value="12"><br>
+  <button>予約</button>
+</form>
+{% endblock %}

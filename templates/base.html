@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Parking System</title>
+  <style>
+    body { font-family: sans-serif; margin: 24px; }
+    nav a { margin-right: 12px; }
+    .msg { padding: 10px; margin: 10px 0; border-radius: 6px; }
+    .success { background: #e7f7ee; }
+    .error { background: #fde8e8; }
+    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  {% if session.get("role") == "user" %}
+    <a href="{{ url_for('user_dashboard') }}">ユーザー画面</a>
+    <a href="{{ url_for('user_reserve') }}">予約</a>
+  {% elif session.get("role") == "admin" %}
+    <a href="{{ url_for('admin_dashboard') }}">管理者画面</a>
+  {% endif %}
+  {% if session.get("user") %}
+    <a href="{{ url_for('logout') }}">ログアウト</a>
+  {% endif %}
+</nav>
+
+{% for c,m in get_flashed_messages(with_categories=true) %}
+  <div class="msg {{ c }}">{{ m }}</div>
+{% endfor %}
+
+{% block content %}{% endblock %}
+</body>
+</html>

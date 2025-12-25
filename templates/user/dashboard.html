@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>ユーザー画面</h1>
+
+<table>
+<tr>
+  <th>ID</th><th>車牌</th><th>区画</th><th>状態</th><th>操作</th>
+</tr>
+
+{% for r in reservations %}
+<tr>
+  <td>{{ r.reservation_id }}</td>
+  <td>{{ r.license_plate }}</td>
+  <td>{{ r.spot_id }}</td>
+  <td>{{ r.status.value }}</td>
+  <td>
+
+    {# 予約直後 → 入庫受付可 #}
+    {% if r.status == ReservationStatus.RESERVATION %}
+      <form method="post" action="{{ url_for('user_checkin', reservation_id=r.reservation_id) }}">
+        <button>入庫（受付）</button>
+      </form>
+
+    {# 入庫待ち → 操作不可 #}
+    {% elif r.status == ReservationStatus.WAITING %}
+      入庫待ち中
+
+    {# 入庫中 → 出庫可 #}
+    {% elif r.status == ReservationStatus.ACTIVE %}
+      <form method="post" action="{{ url_for('user_checkout', reservation_id=r.reservation_id) }}">
+        <button>出庫</button>
+      </form>
+
+    {% endif %}
+  </td>
+</tr>
+{% endfor %}
+
+</table>
+{% endblock %}

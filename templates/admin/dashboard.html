@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>管理者画面</h1>
+
+<p>入庫待ち件数：{{ queue_size }}</p>
+
+<form method="post" action="{{ url_for('admin_process_checkin') }}">
+  <button>入庫許可（次の1台）</button>
+</form>
+
+<form method="post" action="{{ url_for('admin_undo') }}">
+  <button>Undo</button>
+</form>
+
+<h2>WAITING（入庫待ち）</h2>
+<ul>
+{% for r in waiting %}
+  <li>
+    {{ r.reservation_id }} - {{ r.license_plate }} - {{ r.spot_id }}
+  </li>
+{% else %}
+  <li>入庫待ちはありません</li>
+{% endfor %}
+</ul>
+
+<h2>ACTIVE（入庫中）</h2>
+<ul>
+{% for r in active %}
+  <li>
+    {{ r.reservation_id }} - {{ r.license_plate }} - {{ r.gate }}
+  </li>
+{% else %}
+  <li>ACTIVEの予約はありません</li>
+{% endfor %}
+</ul>
+
+<h2>履歴</h2>
+<ul>
+{% for r in history %}
+  <li>{{ r.reservation_id }} - {{ r.status.value }}</li>
+{% else %}
+  <li>履歴はありません</li>
+{% endfor %}
+</ul>
+
+{% endblock %}
